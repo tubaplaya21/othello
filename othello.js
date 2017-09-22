@@ -2,7 +2,7 @@
 
 /** The state of the game */
 var state = {
-  action: 'idle',
+  canMove: true,
   over: false,
   turn: 'b',
   board: [
@@ -20,7 +20,43 @@ var state = {
 
 var ctx;
 
+/** @function updateScore
+ * Changes score property based on board.
+ */
+function updateScore(){
+  var wScore = 0;
+  var bScore = 0;
+  for(var y = 0; y < 8; y++){
+    for(var x = 0; x < 8; x++){
+      if(state.board[y][x] == 'w')
+        wScore++;
+      if(state.board[y][x] == 'b')
+        bScore++;
+    }
+  }
+  state.score = {w: wScore, b: bScore};
+}
 
+/** @function checkVictory
+ * Determines if victory has been reached.
+ */
+function checkVictory(){
+  var existsNull = false;
+  for(var y = 0; y < 8; y++){
+    for(var x = 0; x < 8; x++){
+      if(state.board[y][x] == null){
+        existsNull = true;
+      }
+    }
+  }
+  if(!existsNull || state.score.w == 0 || state.score.b == 0){
+    state.over = true;
+  }
+}
+
+/** @function checkValid
+ * Checks for a valid move at a given square.
+ */
 function checkValid(x, y, color, doChange){
   var minX = x > 0 ? x - 1 : 0;
   var minY = y > 0 ? y - 1 : 0;
@@ -47,6 +83,7 @@ function checkValid(x, y, color, doChange){
           if (state.board[checkY][checkX] == color) {
             isFound = true;
             var s;
+            //Flip pieces between valid move and current player's pieces in line.
             if (doChange) {
               for (s = 1; s < t; s++) {
                 var xChange = x + s * diffX;
@@ -64,6 +101,10 @@ function checkValid(x, y, color, doChange){
   return isFound;
 }
 
+/** @function getLegalMoves
+ * Gathers possible moves for given
+ * player color.
+ */
 function getLegalMoves(color){
   var moves = [];
   for (y = 0; y < 8; y++) {
@@ -74,16 +115,26 @@ function getLegalMoves(color){
       }
     }
   }
+  if(moves.length === 0)
+    state.canMove = false;
+  else
+    state.canMove = true;
   return moves;
 }
 
+/** @function applyMove
+  * Applies move made by player.
+  */
 function applyMove(x,y){
   if(state.board[y][x])
     return;
-  if(!checkValid(x, y, state.turn, true))
+  if(!checkValid(x, y, state.turn, true)){
+    nextTurn();
     return;
+  }
   state.board[y][x] = state.turn;
   renderPiece(state.board[y][x], x, y);
+  updateScore();
   nextTurn();
 }
 
@@ -96,45 +147,63 @@ function nextTurn() {
   else state.turn = 'b';
 }
 
+/** @function boardPosition
+  * Gets a board position as square from
+  * mouse coordinates.
+  */
 function boardPosition(x, y) {
   var boardX = Math.floor(x / 65);
   var boardY = Math.floor(y / 65);
   return {x: boardX, y: boardY}
 }
 
+/** @function handleMouseDown
+  * Event handler for when mouse is clicked.
+  */
 function handleMouseDown(event) {
+  if(state.over) return;
+  if(!state.canMove) nextTurn();
   var position = boardPosition(event.clientX, event.clientY);
   var x = position.x;
   var y = position.y;
   if(x < 0 || y < 0 || x > 7 || y > 7) return;
-  // Make sure we're over the current player
-  if(state.board[y][x] === null) {
+  var moves = getLegalMoves(state.turn);
+  var foundOne = false;
+  for(var i = 0; i < moves.length;){
+    var test = moves.pop();
+    if(test.x == x && test.y == y)
+      foundOne = true;
+  }
+  // Make sure we're over the valid space.
+  if(state.board[y][x] === null && foundOne) {
     applyMove(x,y);
-    renderBoard();
+    checkVictory();
+    renderBoard(true);
   }
 }
 
-/** @function hoverOverChecker
+/** @function hoverOverSquare
   * Event handler for when a player is deciding
   * where to move.
   */
 function hoverOverSquare(event) {
   // Make sure we have a canvas context to render to
   if(!ctx) return;
+  if(state.over) return;
   var x = Math.floor(event.clientX / 65);
   var y = Math.floor(event.clientY / 65);
   // Adjust for scrolling
   // Avoid array out-of-bounds issues.
   if(x < 0 || y < 0 || x > 7 || y > 7) return;
   var moves = getLegalMoves(state.turn);
-  var foundOne = null;
+  var foundOne = false;
   for(var i = 0; i < moves.length;){
     var test = moves.pop();
     if(test.x == x && test.y == y)
       foundOne = true;
   }
   if(state.board[y][x] == null && foundOne) {
-    // Highlight the checker to move
+    // Highlight the space that can be moved to.
     ctx.strokeWidth = 15;
     ctx.strokeStyle = "yellow";
     ctx.beginPath();
@@ -149,7 +218,7 @@ function handleMouseMove(event) {
 }
 
 /** @function renderPiece
-  * Renders a checker at the specified position
+  * Renders a piece at the specified position
   */
 function renderPiece(piece, x, y) {
   ctx.beginPath();
@@ -164,7 +233,7 @@ function renderPiece(piece, x, y) {
 
 /** @function renderSquare
   * Renders a single square on the game board
-  * as well as any checkers on it.
+  * as well as any pieces on it.
   */
 function renderSquare(x,y) {
   if((x + y) % 2 == 1) {
@@ -183,7 +252,7 @@ function renderSquare(x,y) {
   }
 }
 
-/** @function renderBoard()
+/** @function renderBoard
   * Renders the entire game board.
   */
 function renderBoard() {
@@ -196,9 +265,30 @@ function renderBoard() {
   ctx.fillStyle = "#FFF"
   ctx.font = "25px Arial";
   ctx.fillText("Black: " + state.score.b + "    White: " + state.score.w, 755, 30);
+  if(!state.canMove){
+    ctx.font = "80px Arial";
+    ctx.fillStyle = 'red';
+    ctx.fillText("Player must skip!", 200, 520);
+  }
+  if(state.over){
+    ctx.fillStyle = 'red';
+    ctx.font = "80px Arial";
+    state.over = true;
+    if(state.score.b > state.score.w){
+      ctx.fillText("Black wins!", 310, 520);
+    }
+    if(state.score.w > state.score.b){
+      ctx.fillText("White wins!", 300, 520);
+    }
+    if(state.score.b == state.score.w){
+      ctx.fillText("Draw!", 400, 520);
+    }
+  }
 }
 
-
+/** @function setup
+  * Sets up elements and board.
+  */
 function setup(){
   var canvas = document.createElement('canvas');
   canvas.width = 1000;
