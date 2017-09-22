@@ -146,16 +146,7 @@ function hoverOverSquare(event) {
 
 function handleMouseMove(event) {
   renderBoard();
-  switch(state.action) {
-    case 'idle':
-      hoverOverSquare(event);
-      break;
-    case 'dragging':
-      state.movingPiece.currentPosition =
-        boardPosition(event.clientX, event.clientY);
-      renderDragging();
-      break;
-  }
+  hoverOverSquare(event);
 }
 
 /** @function renderPiece
