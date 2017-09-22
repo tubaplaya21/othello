@@ -37,7 +37,6 @@ function checkValid(x, y, color, doChange){
       if (colorTest != null && colorTest != color) {
         var diffX = testX - x;
         var diffY = testY - y;
-        //alert (diffX +" "+ diffY);
         for (t=1;;t++) {
           var checkX = x + t * diffX;
           var checkY = y + t * diffY;
