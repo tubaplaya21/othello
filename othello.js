@@ -129,12 +129,11 @@ function hoverOverSquare(event) {
   if(x < 0 || y < 0 || x > 7 || y > 7) return;
   var moves = getLegalMoves(state.turn);
   var foundOne = null;
-  for(var i = 0; i < moves.length; i++){
+  for(var i = 0; i < moves.length;){
     var test = moves.pop();
     if(test.x == x && test.y == y)
       foundOne = true;
   }
-  console.log(moves.indexOf(test[0]));
   if(state.board[y][x] == null && foundOne) {
     // Highlight the checker to move
     ctx.strokeWidth = 15;
