@@ -21,7 +21,7 @@ var state = {
 var ctx;
 
 
-function checkValid(x,y,doChange){
+function checkValid(x, y, color, doChange){
   var minX = x > 0 ? x - 1 : 0;
   var minY = y > 0 ? y - 1 : 0;
   var maxX = x < 7 ? x + 1 : 7;
@@ -33,32 +33,30 @@ function checkValid(x,y,doChange){
     for (testX = minX; testX <= maxX; testX++) {
       if (testX == x && testY == y)
         continue;
-      var colorTest = board[testX][testY];
-      if (colorTest != 0 && colorTest != color) {
+      var colorTest = state.board[testY][testX];
+      if (colorTest != null && colorTest != color) {
         var diffX = testX - x;
         var diffY = testY - y;
         //alert (diffX +" "+ diffY);
         for (t=1;;t++) {
-          var checkX = x+t*diffX;
-          var checkY = y+t*diffY;
-          //alert ("probing "+t+" "+checkX +" "+ checkY);
-          if (checkX < 1 || checkY < 1 ||
-            checkX > 8 || checkY > 8)
+          var checkX = x + t * diffX;
+          var checkY = y + t * diffY;
+          if (checkX < 0 || checkY < 0 || checkX > 7 || checkY > 7)
             break;
-          if (board[checkY][checkX] == 0)
+          if (state.board[checkY][checkX] == null)
             break;
-          if (board[checkY][checkX] == color) {
-            found_opposite = true;
+          if (state.board[checkY][checkX] == color) {
+            isFound = true;
             var s;
             if (doChange) {
-              for (s=1; s < t; s++) {
-                var xChange = x+s*diffX;
-                var yChange = y+s*diffY;
-                board[yChange][xChange] = color;
-                changeColor (yChange,xChange,color);
+              for (s = 1; s < t; s++) {
+                var xChange = x + s * diffX;
+                var yChange = y + s * diffY;
+                state.board[yChange][xChange] = color;
+                renderPiece(state.board[yChange][xChange], xChange, yChange);
               }
             }
-              break;
+            break;
           }
         }
       }
@@ -67,30 +65,26 @@ function checkValid(x,y,doChange){
   return isFound;
 }
 
-function getLegalMoves(x,y){
+function getLegalMoves(color){
   var moves = [];
-  for(var y = 0; y < 8; y++){
-    for(var x = 0; x < 8; x++){
-      if(state.board[y][x] == 'b'){
-        var xIsSame = false;
-        var yIsSame = false;
-        for(var iy = 0; (y+iy) < 8; iy++){
-          for(var ix = 0; (x+ix) < 8; iy++){
-
-          }
-        }
+  for (y = 0; y < 8; y++) {
+    for (x = 0; x < 8 ; x++) {
+      var valid = checkValid (x, y, color, false);
+      if (valid) {
+        moves.push({x: x, y: y});
       }
     }
   }
+  return moves;
 }
 
 function applyMove(x,y){
-  if(state.turn == 'b'){
-    state.board[y][x] = 'b';
-  }
-  if(state.turn == 'w'){
-    state.board[y][x] = 'w'
-  }
+  if(state.board[y][x])
+    return;
+  if(!checkValid(x, y, state.turn, true))
+    return;
+  state.board[y][x] = state.turn;
+  renderPiece(state.board[y][x], x, y);
   nextTurn();
 }
 
@@ -133,8 +127,15 @@ function hoverOverSquare(event) {
   // Adjust for scrolling
   // Avoid array out-of-bounds issues.
   if(x < 0 || y < 0 || x > 7 || y > 7) return;
-  // Make sure we're over the current player
-  if(state.board[y][x] && state.board[y][x].charAt(0) === state.turn) {
+  var moves = getLegalMoves(state.turn);
+  var foundOne = null;
+  for(var i = 0; i < moves.length; i++){
+    var test = moves.pop();
+    if(test.x == x && test.y == y)
+      foundOne = true;
+  }
+  console.log(moves.indexOf(test[0]));
+  if(state.board[y][x] == null && foundOne) {
     // Highlight the checker to move
     ctx.strokeWidth = 15;
     ctx.strokeStyle = "yellow";
