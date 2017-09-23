@@ -6,14 +6,22 @@ var state = {
   over: false,
   turn: 'b',
   board: [
-    [null,null,null,null, null,null,  null,null],
+    ['b', 'w', 'b', 'b', 'b', 'w', 'w', 'w'],
+    ['b', 'w', 'b', 'b', 'b', 'w', 'w', 'w'],
+    ['b', 'w', 'b', 'b', 'b', 'w', 'w', 'w'],
+    ['b', 'w', 'b', 'b', 'b', 'w', 'w', 'w'],
+    ['b', 'w', 'b', 'b', 'b', 'w', 'w', 'w'],
+    ['b', 'w', 'b', 'b', 'b', 'w', 'w', 'w'],
+    ['b', 'w', 'b', 'b', 'b', 'w', 'b', 'w'],
+    ['b', 'w', 'b', 'b', 'b', 'w', 'b', null]
+    /*[null,null,null,null, null,null,  null,null],
     [null,null,null,null, null,null,  null,null],
     [null,null,null,null, null,null,  null,null],
     [null,null,null,'w' , 'b' ,null,  null,null],
     [null,null,null,'b' , 'w' ,null,  null,null],
     [null,null,null,null, null,null,  null,null],
     [null,null,null,null, null,null,  null,null],
-    [null,null,null,null, null,null,  null,null]
+    [null,null,null,null, null,null,  null,null]*/
   ],
   score: {w: 2, b: 2}
 }
@@ -162,7 +170,12 @@ function boardPosition(x, y) {
   */
 function handleMouseDown(event) {
   if(state.over) return;
-  if(!state.canMove) nextTurn();
+  if(!state.canMove){
+    nextTurn();
+    hoverOverSquare(event);
+    renderBoard();
+    return;
+  }
   var position = boardPosition(event.clientX, event.clientY);
   var x = position.x;
   var y = position.y;
@@ -178,7 +191,7 @@ function handleMouseDown(event) {
   if(state.board[y][x] === null && foundOne) {
     applyMove(x,y);
     checkVictory();
-    renderBoard(true);
+    renderBoard();
   }
 }
 
@@ -262,13 +275,24 @@ function renderBoard() {
       renderSquare(x, y);
     }
   }
-  ctx.fillStyle = "#FFF"
-  ctx.font = "25px Arial";
-  ctx.fillText("Black: " + state.score.b + "    White: " + state.score.w, 755, 30);
+  ctx.fillStyle = "red";
+  ctx.font = "28px Arial";
+  ctx.fillText("Black: " + state.score.b + "    White: " + state.score.w, 730, 30);
   if(!state.canMove){
     ctx.font = "80px Arial";
     ctx.fillStyle = 'red';
     ctx.fillText("Player must skip!", 200, 520);
+    ctx.fillText("(Click to skip)", 270, 650);
+  }
+  if(state.turn == 'b'){
+    ctx.fillStyle = "red";
+    ctx.font = "40px Arial";
+    ctx.fillText("Black's Turn", 380, 30);
+  }
+  if(state.turn == 'w'){
+    ctx.fillStyle = "red";
+    ctx.font = "40px Arial";
+    ctx.fillText("White's Turn", 380, 30);
   }
   if(state.over){
     ctx.fillStyle = 'red';
