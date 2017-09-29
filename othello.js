@@ -6,22 +6,14 @@ var state = {
   over: false,
   turn: 'b',
   board: [
-    ['b', 'w', 'b', 'b', 'b', 'w', 'w', 'w'],
-    ['b', 'w', 'b', 'b', 'b', 'w', 'w', 'w'],
-    ['b', 'w', 'b', 'b', 'b', 'w', 'w', 'w'],
-    ['b', 'w', 'b', 'b', 'b', 'w', 'w', 'w'],
-    ['b', 'w', 'b', 'b', 'b', 'w', 'w', 'w'],
-    ['b', 'w', 'b', 'b', 'b', 'w', 'w', 'w'],
-    ['b', 'w', 'b', 'b', 'b', 'w', 'b', 'w'],
-    ['b', 'w', 'b', 'b', 'b', 'w', 'b', null]
-    /*[null,null,null,null, null,null,  null,null],
+    [null,null,null,null, null,null,  null,null],
     [null,null,null,null, null,null,  null,null],
     [null,null,null,null, null,null,  null,null],
     [null,null,null,'w' , 'b' ,null,  null,null],
     [null,null,null,'b' , 'w' ,null,  null,null],
     [null,null,null,null, null,null,  null,null],
     [null,null,null,null, null,null,  null,null],
-    [null,null,null,null, null,null,  null,null]*/
+    [null,null,null,null, null,null,  null,null]
   ],
   score: {w: 2, b: 2}
 }
